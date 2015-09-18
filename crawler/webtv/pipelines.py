@@ -1,4 +1,4 @@
-import os, subprocess, tempfile, hashlib, logging
+import os, shutil, subprocess, tempfile, hashlib, logging
 from scrapy.exceptions import DropItem
 
 def shell(cmd):
@@ -6,10 +6,11 @@ def shell(cmd):
     return subprocess.call(cmd)
 
 def store(url, src):
-    digest = hashlib.md5.new(url).hexdigest()
+    digest = hashlib.md5(url).hexdigest()
     directory = '/data/' + digest[0:2] + '/' + digest[2:6] + '/' + digest[6:] + '/'
-    os.path.mkdirs(directory)
-    os.rename(src, os.path.join(directory, os.path.basename(src)))
+    if not os.path.exists(directory):
+    	os.makedirs(directory)
+    shutil.copy(src, os.path.join(directory, os.path.basename(src)))
 
 class SVTPlayDownload(object):
     def process_item(self, item, spider):
