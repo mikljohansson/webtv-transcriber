@@ -13,21 +13,22 @@ def store(url, src):
 
 class SVTPlayDownload(object):
     def process_item(self, item, spider):
+        url = item['url']
         outputdir = str(tempfile.mkdtemp())
         try:
             outputbase = os.path.join(outputdir, 'output')
             audiotrack = outputbase+'.mp3'
             subtitles = outputbase+'.srt'
             
-            code = shell(['svtplay-dl', '-o', outputbase, '-f', '-S', '-q', '1', '-Q', '10000', item['url']])
+            code = shell(['svtplay-dl', '-o', outputbase, '-f', '-S', '-q', '1', '-Q', '10000', url])
             if code != 0:
-                raise DropItem('Failed to download video from %s' % item['url'])
+                raise DropItem('Failed to download video from %s' % url)
             if not os.path.exists(subtitles):
-                raise DropItem('Video did not contain subtitles %s' % item['url'])
+                raise DropItem('Video did not contain subtitles %s' % url)
             
             code = shell(['ffmpeg', '-i', outputbase+'.ts', '-y', '-vn', '-f', 'mp3', '-ac', '1', '-q:a', '6', audiotrack])
             if code != 0:
-                raise DropItem('Failed to extract audio from %s' % item['url'])
+                raise DropItem('Failed to extract audio from %s' % url)
 
             store(url, audiotrack)
             store(url, subtitles)
