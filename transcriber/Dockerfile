@@ -1,6 +1,9 @@
 FROM kaixhin/lasagne:latest
 
+VOLUME /data
+
 ADD . /transcriber/
+WORKDIR /transcriber
 
 ENTRYPOINT ["python"]
-CMD ["/transcriber/examples/mnist.py"]
+CMD ["/transcriber/train.py"]
