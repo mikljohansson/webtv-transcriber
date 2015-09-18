@@ -1,5 +1,7 @@
 FROM kaixhin/lasagne:latest
 
+RUN apt-get -y install libav-tools
+
 VOLUME /data
 
 ADD . /transcriber/

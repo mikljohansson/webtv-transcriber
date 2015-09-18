@@ -23,60 +23,36 @@ import theano
 import theano.tensor as T
 
 import lasagne
+import logging, tempfile, subprocess, wave
 
+def shell(cmd):
+    logging.info('Running ' + ' '.join(cmd))
+    return subprocess.call(cmd)
 
-# ################## Download and prepare the MNIST dataset ##################
-# This is just some way of getting the MNIST dataset from an online location
-# and loading it into numpy arrays. It doesn't involve Lasagne at all.
+def with_file_extension(path, ext):
+    return os.path.splitext(path)[0] + ext
+
+def audiotracks(path):
+    for dirpath, dirs, files in os.walk(path):
+        for filename in files:
+            audiotrack = os.path.join(dirpath, filename)
+            subtitles = with_file_extension(audiotrack, '.srt')
+            if audiotrack.endswith('.mp3') and os.path.exists(subtitles):
+                yield audiotrack, subtitles
+
+def sonogram_windows(wavfile, buckets, window):
+    yield None
+
+def sonograms(path):
+    for audiotrack, subtitles in audiotracks(path):
+        tmpfile = tempfile.NamedTemporaryFile()
+        shell(['avconv', '-y', '-loglevel', 'warning', '-i', audiotrack, '-vn', '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', '-f', 'wav', tmpfile.name])
+        wavfile = wave.open(tmpfile.name)
+        yield sonogram_windows(wavfile, 32, 5), subtitles
 
 def load_dataset():
-    # We first define some helper functions for supporting both Python 2 and 3.
-    if sys.version_info[0] == 2:
-        from urllib import urlretrieve
-        import cPickle as pickle
-
-        def pickle_load(f, encoding):
-            return pickle.load(f)
-    else:
-        from urllib.request import urlretrieve
-        import pickle
-
-        def pickle_load(f, encoding):
-            return pickle.load(f, encoding=encoding)
-
-    # We'll now download the MNIST dataset if it is not yet available.
-    url = 'http://deeplearning.net/data/mnist/mnist.pkl.gz'
-    filename = 'mnist.pkl.gz'
-    if not os.path.exists(filename):
-        print("Downloading MNIST dataset...")
-        urlretrieve(url, filename)
-
-    # We'll then load and unpickle the file.
-    import gzip
-    with gzip.open(filename, 'rb') as f:
-        data = pickle_load(f, encoding='latin-1')
-
-    # The MNIST dataset we have here consists of six numpy arrays:
-    # Inputs and targets for the training set, validation set and test set.
-    X_train, y_train = data[0]
-    X_val, y_val = data[1]
-    X_test, y_test = data[2]
-
-    # The inputs come as vectors, we reshape them to monochrome 2D images,
-    # according to the shape convention: (examples, channels, rows, columns)
-    X_train = X_train.reshape((-1, 1, 28, 28))
-    X_val = X_val.reshape((-1, 1, 28, 28))
-    X_test = X_test.reshape((-1, 1, 28, 28))
-
-    # The targets are int64, we cast them to int8 for GPU compatibility.
-    y_train = y_train.astype(np.uint8)
-    y_val = y_val.astype(np.uint8)
-    y_test = y_test.astype(np.uint8)
-
-    # We just return all the arrays in order, as expected in main().
-    # (It doesn't matter how we do this as long as we can read them again.)
-    return X_train, y_train, X_val, y_val, X_test, y_test
-
+    for windows, subtitles in sonograms('/data'):
+        print (windows, subtitles)
 
 # ##################### Build the neural network model #######################
 # This script supports three types of models. For each one, we define a
@@ -227,7 +203,7 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 def main(model='mlp', num_epochs=500):
     # Load the dataset
     print("Loading data...")
-    X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
+    dataset = load_dataset()
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
