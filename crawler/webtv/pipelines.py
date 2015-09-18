@@ -33,11 +33,11 @@ class SVTPlayDownload(object):
             subtitles = outputbase+'.srt'
 
             # Check if item been processed before
-            if self._storage.exists(url, audiotrack) and self._storage.exists(subtitles):
+            if self._storage.exists(url, audiotrack) and self._storage.exists(url, subtitles):
                 raise DropItem('Skipping item that was previously downloaded %s' % url)
             
             # Download the transport stream
-            code = shell(['svtplay-dl', '-o', outputbase, '-f', '-S', '-q', '1', '-Q', '10000', url])
+            code = shell(['svtplay-dl', '--require-subtitle', '-o', outputbase, '-f', '-S', '-q', '1', '-Q', '10000', url])
             if code != 0:
                 raise DropItem('Failed to download video from %s' % url)
             if not os.path.exists(subtitles):

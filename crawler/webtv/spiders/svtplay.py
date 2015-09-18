@@ -14,6 +14,7 @@ class SVTPlaySpider(CrawlSpider):
 
     rules = (
         Rule(LinkExtractor(allow=('svtplay.se/video/\d+/', )), callback='parse_video'),
+        Rule(LinkExtractor(allow=('svtplay.se/klipp/\d+/', )), callback='parse_video'),
         Rule(LinkExtractor()),
     )
 
