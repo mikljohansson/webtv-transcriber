@@ -1,0 +1,5 @@
+transcriber:
+  build: .
+  tty: true
+  volumes:
+    - "../data:/data"

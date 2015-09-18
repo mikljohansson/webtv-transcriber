@@ -1,0 +1,4 @@
+crawler:
+  build: .
+  volumes:
+    - "../data:/data"
