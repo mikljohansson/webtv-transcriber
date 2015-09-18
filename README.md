@@ -8,6 +8,9 @@
 
 
 # Startup
+```
+docker-compose up
+```
 
 ## Crawler
 Output goes into ./data

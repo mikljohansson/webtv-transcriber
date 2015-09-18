@@ -1,0 +1,10 @@
+crawler:
+  build: crawler
+  volumes:
+    - "./data:/data"
+
+transcriber:
+  build: transcriber
+  tty: true
+  volumes:
+    - "./data:/data"
