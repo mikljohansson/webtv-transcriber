@@ -1,4 +1,5 @@
 crawler:
   build: .
+  tty: true
   volumes:
     - "../data:/data"
