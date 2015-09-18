@@ -9,6 +9,7 @@ RUN pip install scrapy
 
 # Install svtplay-dl
 RUN git clone git://github.com/spaam/svtplay-dl
+RUN pip install requests
 ENV PATH ${PATH}:/svtplay-dl
 
 VOLUME /data
