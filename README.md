@@ -6,6 +6,20 @@
 - Setup an NN training pipeline based on Lasagna example (Mikael)
 - Do some research on how to build the NN https://github.com/Lasagne/Lasagne
 
+# Reading Material
+
+- http://usa.baidu.com/deep-speech-lessons-from-deep-learning/
+- http://devblogs.nvidia.com/parallelforall/deep-speech-accurate-speech-recognition-gpu-accelerated-deep-learning/
+- http://www.wildml.com/2015/09/recurrent-neural-networks-tutorial-part-1-introduction-to-rnns/
+- http://www.cs.toronto.edu/~graves/asru_2013.pdf
+- http://arxiv.org/pdf/1412.5567v2.pdf
+- https://wiki.inf.ed.ac.uk/twiki/pub/CSTR/ListenTerm1201415/sak2.pdf
+
+## Parallel Training
+
+- https://drive.google.com/file/d/0B6dKRGPLFSd0UGNOYkNaSC1UZTA/view
+- https://github.com/uoguelph-mlrg/theano_multi_gpu
+- https://github.com/uoguelph-mlrg/theano_alexnet
 
 # Startup
 ```
