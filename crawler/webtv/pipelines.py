@@ -22,6 +22,7 @@ class FileStorage(object):
 class SVTPlayDownload(object):
     def __init__(self):
         self._storage = FileStorage()
+        self._visited = set()
 
     def process_item(self, item, spider):
         outputdir = str(tempfile.mkdtemp())
@@ -33,13 +34,15 @@ class SVTPlayDownload(object):
             subtitles = outputbase+'.srt'
 
             # Check if item been processed before
-            if self._storage.exists(url, audiotrack) and self._storage.exists(url, subtitles):
+            if self._storage.exists(url, audiotrack) and self._storage.exists(url, subtitles) or (url in self._visited):
                 raise DropItem('Skipping item that was previously downloaded %s' % url)
             
             # Download the transport stream
             code = shell(['svtplay-dl', '--require-subtitle', '-o', outputbase, '-f', '-S', '-q', '1', '-Q', '10000', url])
             if code != 0:
                 raise DropItem('Failed to download video from %s' % url)
+
+            self._visited.add(url)
             if not os.path.exists(subtitles):
                 raise DropItem('Video did not contain subtitles %s' % url)
             
