@@ -2,7 +2,7 @@
 #
 # sudo pip install mutagen
 #
-import os, sys
+import os, sys, math
 from mutagen.mp3 import MP3
 
 def audiotracks(path):
@@ -22,4 +22,4 @@ for audiotrack in audiotracks(sys.argv[1]):
 	length += audio.info.length
 	count += 1
 
-print "%d tracks, total length %dh:%dm, size on disk %dMb" % (count, round(length / 60 / 60), round(length / 60 % 60), filesize / 1024 / 1024)
+print "%d tracks, total length %dh:%dm, size on disk %dMb" % (count, math.floor(length / 60 / 60), math.ceil(length / 60 % 60), filesize / 1024 / 1024)
