@@ -15,6 +15,7 @@ def audiotracks(path):
 filesize = 0
 length = 0.0
 count = 0
+nometa = 0
 
 for audiotrack in audiotracks(sys.argv[1]):
 	audio = MP3(audiotrack)
@@ -22,4 +23,7 @@ for audiotrack in audiotracks(sys.argv[1]):
 	length += audio.info.length
 	count += 1
 
-print "%d tracks, total length %dh:%dm, size on disk %dMb" % (count, math.floor(length / 60 / 60), math.ceil(length / 60 % 60), filesize / 1024 / 1024)
+	if not os.path.exists(os.path.join(os.path.dirname(audiotrack), 'output.json')):
+		nometa += 1
+
+print "%d tracks, total length %dh:%dm, size on disk %dMb, %s lacking metadata" % (count, math.floor(length / 60 / 60), math.ceil(length / 60 % 60), filesize / 1024 / 1024, nometa)

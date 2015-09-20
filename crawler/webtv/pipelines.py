@@ -45,9 +45,11 @@ class SVTPlayDownload(object):
                 f.write(json.dumps({'url':url, 'name':item['name'], 'visited':int(time.time())}))
 
             # Check if item been processed before
-            if self._storage.exists(url, audiotrack) and self._storage.exists(url, subtitles) or (url in self._visited):
+            if self._storage.exists(url, audiotrack) and self._storage.exists(url, subtitles):
                 self._storage.put(url, metadata)
                 raise DropItem('Skipping item that was previously downloaded %s' % url)
+            if url in self._visited:
+                raise DropItem('Skipping item that was previously checked for subtitles %s' % url)
             
             # Download the transport stream
             code = shell(['svtplay-dl', '--require-subtitle', '-o', outputbase, '-f', '-S', '-q', '1', '-Q', '10000', url])
