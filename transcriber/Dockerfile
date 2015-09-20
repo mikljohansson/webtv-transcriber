@@ -1,6 +1,6 @@
 FROM kaixhin/lasagne:latest
 
-RUN apt-get -y install libav-tools
+RUN apt-get -y install libav-tools python-scipy
 
 VOLUME /data
 

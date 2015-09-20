@@ -23,7 +23,7 @@ import theano
 import theano.tensor as T
 
 import lasagne
-import logging, tempfile, subprocess, wave
+import logging, tempfile, subprocess, wave, scipy
 
 def shell(cmd):
     logging.info('Running ' + ' '.join(cmd))
@@ -41,13 +41,14 @@ def audiotracks(path):
                 yield audiotrack, subtitles
 
 def sonogram_windows(wavfile, buckets, window):
+    #scipy.signal.spectrogram
     yield None
 
 def sonograms(path):
     for audiotrack, subtitles in audiotracks(path):
         tmpfile = tempfile.NamedTemporaryFile()
         shell(['avconv', '-y', '-loglevel', 'warning', '-i', audiotrack, '-vn', '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', '-f', 'wav', tmpfile.name])
-        wavfile = wave.open(tmpfile.name)
+        wavfile = scipy.io.wavfile.read(tmpfile.name, mmap=True)
         yield sonogram_windows(wavfile, 32, 5), subtitles
 
 def load_dataset():
