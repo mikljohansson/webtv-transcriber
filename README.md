@@ -11,8 +11,13 @@
 - http://usa.baidu.com/deep-speech-lessons-from-deep-learning/
 - http://devblogs.nvidia.com/parallelforall/deep-speech-accurate-speech-recognition-gpu-accelerated-deep-learning/
 - http://www.wildml.com/2015/09/recurrent-neural-networks-tutorial-part-1-introduction-to-rnns/
+
+- http://www.jmlr.org/proceedings/papers/v32/graves14.pdf
 - http://www.cs.toronto.edu/~graves/asru_2013.pdf
+- http://www.machinelearning.org/proceedings/icml2006/047_Connectionist_Tempor.pdf
+
 - https://wiki.inf.ed.ac.uk/twiki/pub/CSTR/ListenTerm1201415/sak2.pdf
+
 
 ## Parallel Training
 
