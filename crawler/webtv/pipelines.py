@@ -1,9 +1,16 @@
-import os, shutil, subprocess, tempfile, hashlib, logging
+import os, shutil, subprocess, tempfile, hashlib, logging, json, time
 from scrapy.exceptions import DropItem
 
 def shell(cmd):
     logging.info('Running ' + ' '.join(cmd))
     return subprocess.call(cmd)
+
+def findvideo(base):
+    extensions = ('.ts', '.mp4')
+    for extension in extensions:
+        if os.path.exists(base + extension):
+            return base + extension
+    return None
 
 class FileStorage(object):
     def exists(self, url, src):
@@ -32,9 +39,14 @@ class SVTPlayDownload(object):
             outputbase = os.path.join(outputdir, 'output')
             audiotrack = outputbase+'.mp3'
             subtitles = outputbase+'.srt'
+            metadata = outputbase+'.json'
+
+            with open(metadata, 'w') as f:
+                f.write(json.dumps({'url':url, 'name':item['name'], 'visited':int(time.time())}))
 
             # Check if item been processed before
             if self._storage.exists(url, audiotrack) and self._storage.exists(url, subtitles) or (url in self._visited):
+                self._storage.put(url, metadata)
                 raise DropItem('Skipping item that was previously downloaded %s' % url)
             
             # Download the transport stream
@@ -45,15 +57,16 @@ class SVTPlayDownload(object):
             self._visited.add(url)
             if not os.path.exists(subtitles):
                 raise DropItem('Video did not contain subtitles %s' % url)
-            
+
             # Extract audio track and store as mp3
-            code = shell(['ffmpeg', '-i', outputbase+'.ts', '-y', '-vn', '-f', 'mp3', '-ac', '1', '-q:a', '6', audiotrack])
+            code = shell(['ffmpeg', '-i', findvideo(outputbase), '-y', '-vn', '-f', 'mp3', '-ac', '1', '-q:a', '6', audiotrack])
             if code != 0:
                 raise DropItem('Failed to extract audio from %s' % url)
 
             # Transfer to persistent storage
             self._storage.put(url, audiotrack)
             self._storage.put(url, subtitles)
+            self._storage.put(url, metadata)
         finally:
             # Remove temporary directory and files
             shell(['rm', '-rf', outputdir])
