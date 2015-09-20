@@ -32,6 +32,11 @@ def shell(cmd):
 def with_file_extension(path, ext):
     return os.path.splitext(path)[0] + ext
 
+class AudioRecording(class)
+    def __init__(samplerate, data):
+        self.samplerate = samplerate
+        self.samples = samples
+
 def audiotracks(path):
     for dirpath, dirs, files in os.walk(path):
         for filename in files:
@@ -40,16 +45,18 @@ def audiotracks(path):
             if audiotrack.endswith('.mp3') and os.path.exists(subtitles):
                 yield audiotrack, subtitles
 
-def sonogram_windows(wavfile, buckets, window):
-    #scipy.signal.spectrogram
+def spectrogram_segments(audio):
+    
+
+    scipy.signal.spectrogram
     yield None
 
-def sonograms(path):
+def spectrograms(path):
     for audiotrack, subtitles in audiotracks(path):
         tmpfile = tempfile.NamedTemporaryFile()
         shell(['avconv', '-y', '-loglevel', 'warning', '-i', audiotrack, '-vn', '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', '-f', 'wav', tmpfile.name])
-        wavfile = scipy.io.wavfile.read(tmpfile.name, mmap=True)
-        yield sonogram_windows(wavfile), subtitles
+        audio = AudioRecording(scipy.io.wavfile.read(tmpfile.name, mmap=True))
+        yield spectrogram_segments(audio), subtitles
 
 def load_dataset():
     for windows, subtitles in sonograms('/data'):
