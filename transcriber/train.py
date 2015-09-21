@@ -23,7 +23,16 @@ import theano
 import theano.tensor as T
 
 import lasagne
-import logging, tempfile, subprocess, wave, scipy
+import logging, tempfile, subprocess, wave
+from scipy.io import wavfile as spwavfile
+from scipy import misc as spmisc
+from scipy import signal as spsignal
+
+SPECTROGRAM_BATCH_SECONDS = 10.000
+SPECTROGRAM_SEGMENT_SECONDS = 0.020
+SPECTROGRAM_OVERLAP_FRACTION = 0.25
+
+logging.getLogger().setLevel(logging.INFO)
 
 def shell(cmd):
     logging.info('Running ' + ' '.join(cmd))
@@ -32,35 +41,58 @@ def shell(cmd):
 def with_file_extension(path, ext):
     return os.path.splitext(path)[0] + ext
 
-class AudioRecording(class)
-    def __init__(samplerate, data):
+def next_power_of_2(x):
+    return 1 << (int(x)-1).bit_length()
+
+class Recording(object):
+    def __init__(self, audiotrack, subtitles):
+        self.audiotrack = audiotrack
+        self.subtitles = subtitles
+
+class Timeseries(object):
+    def __init__(self, samplerate, samples):
         self.samplerate = samplerate
         self.samples = samples
 
-def audiotracks(path):
+class Spectrogram(object):
+    def __init__(self, recording, frequencies, timestamps, amplitudes):
+        self.recording = recording
+        self.frequencies = frequencies
+        self.timestamps = timestamps
+        
+        # amplitudes[frequency][timestamp] = amplitude
+        self.amplitudes = amplitudes
+
+def recordings(path):
     for dirpath, dirs, files in os.walk(path):
         for filename in files:
             audiotrack = os.path.join(dirpath, filename)
             subtitles = with_file_extension(audiotrack, '.srt')
             if audiotrack.endswith('.mp3') and os.path.exists(subtitles):
-                yield audiotrack, subtitles
+                yield Recording(audiotrack, subtitles)
 
-def spectrogram_segments(audio):
-    
+def spectrograms(recording, timeseries):
+    batchsize = next_power_of_2(timeseries.samplerate * SPECTROGRAM_BATCH_SECONDS)
+    segmentsize = next_power_of_2(timeseries.samplerate * SPECTROGRAM_SEGMENT_SECONDS)
+    overlapsize = int(segmentsize * SPECTROGRAM_OVERLAP_FRACTION)
 
-    scipy.signal.spectrogram
-    yield None
+    for i in xrange(0, len(timeseries.samples), batchsize):
+        batch = timeseries.samples[i:(i + batchsize)]
+        frequencies, timestamps, amplitudes = spsignal.spectrogram(
+            batch, timeseries.samplerate, nperseg=segmentsize, noverlap=overlapsize)
+        
+        # Normalize to [0.0, 1.0] in loglog scale
+        amplitudes = np.log2(np.log2(amplitudes / amplitudes.max() + 1.0) + 1.0)
+        yield Spectrogram(recording, frequencies, timestamps, amplitudes)
 
-def spectrograms(path):
-    for audiotrack, subtitles in audiotracks(path):
+def load_dataset(path):
+    for recording in recordings(path):
         tmpfile = tempfile.NamedTemporaryFile()
-        shell(['avconv', '-y', '-loglevel', 'warning', '-i', audiotrack, '-vn', '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', '-f', 'wav', tmpfile.name])
-        audio = AudioRecording(scipy.io.wavfile.read(tmpfile.name, mmap=True))
-        yield spectrogram_segments(audio), subtitles
+        shell(['avconv', '-y', '-loglevel', 'warning', '-i', recording.audiotrack, '-vn', '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', '-f', 'wav', tmpfile.name])
+        data = spwavfile.read(tmpfile.name, mmap=True)
 
-def load_dataset():
-    for windows, subtitles in sonograms('/data'):
-        print (windows, subtitles)
+        for spectrogram in spectrograms(recording, Timeseries(*data)):
+            yield spectrogram
 
 # ##################### Build the neural network model #######################
 # This script supports three types of models. For each one, we define a
@@ -211,7 +243,20 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 def main(model='mlp', num_epochs=500):
     # Load the dataset
     print("Loading data...")
-    dataset = load_dataset()
+    #dataset = load_dataset()
+
+    track = None
+    count = 0
+    for spectrogram in load_dataset('./data'):
+        if track != spectrogram.recording.audiotrack:
+            track = spectrogram.recording.audiotrack
+            count = 0
+
+        path = os.path.join(os.path.dirname(spectrogram.recording.audiotrack), 'output-%d.png' % count)
+        spmisc.imsave(path, 1.0 - spectrogram.amplitudes)
+        count += 1
+
+    return
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
