@@ -81,6 +81,9 @@ def spectrograms(recording, timeseries):
         frequencies, timestamps, amplitudes = spsignal.spectrogram(
             batch, timeseries.samplerate, nperseg=segmentsize, noverlap=overlapsize)
         
+        # Slice away uninteresting frequencies
+        amplitudes = amplitudes[0:(len(amplitudes) // 4)]
+
         # Normalize to [0.0, 1.0] in loglog scale
         amplitudes = np.log2(np.log2(amplitudes / amplitudes.max() + 1.0) + 1.0)
         yield Spectrogram(recording, frequencies, timestamps, amplitudes)
@@ -253,7 +256,7 @@ def main(model='mlp', num_epochs=500):
             count = 0
 
         path = os.path.join(os.path.dirname(spectrogram.recording.audiotrack), 'output-%d.png' % count)
-        spmisc.imsave(path, 1.0 - spectrogram.amplitudes)
+        spmisc.imsave(path, np.flipud(1.0 - spectrogram.amplitudes))
         count += 1
 
     return
