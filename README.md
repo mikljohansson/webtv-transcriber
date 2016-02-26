@@ -1,5 +1,7 @@
 # Reading Material
 
+- http://svail.github.io/mandarin/
+
 - http://usa.baidu.com/deep-speech-lessons-from-deep-learning/
 - http://devblogs.nvidia.com/parallelforall/deep-speech-accurate-speech-recognition-gpu-accelerated-deep-learning/
 - http://www.wildml.com/2015/09/recurrent-neural-networks-tutorial-part-1-introduction-to-rnns/
